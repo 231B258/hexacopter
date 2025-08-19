@@ -1,0 +1,37 @@
+<launch>
+
+    <!-- Load empty Gazebo world -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="world_name" value="$(find fly_bot)/worlds/horizontalControlDemo3.world" />
+        <arg name="paused" default="false" />
+        <arg name="use_sim_time" default="true" />
+        <arg name="gui" default="true" />
+        <arg name="headless" default="false" />
+        <arg name="debug" default="false" />
+    </include>
+
+    <group ns="Kwad">
+
+        <!-- Load robot description from xacro -->
+        <param name="robot_description" command="$(find xacro)/xacro '$(find fly_bot)/urdf/Kwad.xacro'" />
+
+        <!-- Spawn URDF in Gazebo -->
+        <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+              args="-param robot_description -urdf -model Kwad" />
+
+        <!-- Load controller configs -->
+        <rosparam file="$(find fly_bot)/config/Kwad_control.yaml" command="load" ns="/Kwad" />
+
+        <!-- Spawn controllers -->
+        <node name="control_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen"
+              args="--namespace=/Kwad joint_state_controller joint_motor_controller" />
+
+        <!-- Publish robot state -->
+        <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
+              respawn="false" output="screen">
+            <param name="publish_frequency" type="double" value="5.0" />
+        </node>
+
+    </group>
+
+</launch>
